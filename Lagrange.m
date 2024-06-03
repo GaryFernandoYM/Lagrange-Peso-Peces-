@@ -3,41 +3,41 @@ semanas = [1, 2, 3, 4, 5, 6, 7];
 pesos = [0.017, 0.040, 0.065, 0.085, 0.150, 0.180, 0.250];
 
 % Función para calcular el polinomio de Lagrange
-function P = lagrange_interpol(t, semanas, pesos)
+function [P, polinomio_str] = lagrange_interpol(t, semanas, pesos)
     n = length(semanas);
     P = 0;
+    polinomio_str = '';
     for k = 1:n
         Lk = 1;
+        Lk_str = '1';
         for i = 1:n
             if i ~= k
                 Lk = Lk * (t - semanas(i)) / (semanas(k) - semanas(i));
+                Lk_str = [Lk_str ' * (t - ' num2str(semanas(i)) ') / (' num2str(semanas(k)) ' - ' num2str(semanas(i)) ')'];
             end
         end
         P = P + pesos(k) * Lk;
+        if k == 1
+            polinomio_str = [polinomio_str num2str(pesos(k)) ' * (' Lk_str ')'];
+        else
+            polinomio_str = [polinomio_str ' + ' num2str(pesos(k)) ' * (' Lk_str ')'];
+        end
     end
 end
 
-% Generar resultados para puntos originales y puntos intermedios
-resultados = [];
-for t = [semanas, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]
-    peso_interp = lagrange_interpol(t, semanas, pesos);
-    if ismember(t, semanas)
-        peso_original = pesos(semanas == t);
-    else
-        peso_original = NaN;
-    end
-    resultados = [resultados; t, peso_original, peso_interp];
-end
+% Predicción para la semana 3.5
+t_pred = 3.5;
+[peso_predicho, polinomio_str] = lagrange_interpol(t_pred, semanas, pesos);
+fprintf('El peso de los peces en la semana %.1f es aproximadamente: %.4f gramos\n', t_pred, peso_predicho);
 
-% Mostrar resultados en tabla
-fprintf('Semana (t) | Peso Original (g) | Peso Interpolado (g)\n');
-fprintf('-----------------------------------------------\n');
-for i = 1:size(resultados, 1)
-    if isnan(resultados(i, 2))
-        fprintf('  %.1f      |       -       |        %.4f\n', resultados(i, 1), resultados(i, 3));
-    else
-        fprintf('  %.1f      |    %.4f      |        %.4f\n', resultados(i, 1), resultados(i, 2), resultados(i, 3));
-    end
+% Mostrar el polinomio de Lagrange
+fprintf('El polinomio de Lagrange es:\n%s\n', polinomio_str);
+
+% Comprobación en los puntos originales
+fprintf('Comprobación en los puntos originales:\n');
+for i = 1:length(semanas)
+    peso_interp = lagrange_interpol(semanas(i), semanas, pesos);
+    fprintf('Semana %d: Peso original = %.4f, Peso interpolado = %.4f\n', semanas(i), pesos(i), peso_interp);
 end
 
 % Visualización
